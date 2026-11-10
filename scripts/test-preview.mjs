@@ -52,6 +52,39 @@ try {
     assert.equal(response.status(), 200);
     assert.equal(await page.locator('main').isVisible(), false);
     await page.getByRole('button', { name: 'Play sample' }).click();
+    const verifyLayout = async () => {
+      const layout = await page.evaluate(() => {
+        const bar = document.querySelector('.actions');
+        const buttons = [...bar.querySelectorAll('button')];
+        const bounds = buttons.map(button => button.getBoundingClientRect());
+        return {
+          labels: buttons.map(button => button.innerText.replace(/[^\p{L}\s]/gu, '').trim()),
+          oneRow: bounds.every(box => box.top === bounds[0].top && box.height >= 44 &&
+            box.left >= 0 && box.right <= innerWidth),
+          abovePrompt: bar.getBoundingClientRect().bottom <=
+            document.querySelector('.panel').getBoundingClientRect().top,
+          fits: document.querySelector('.game').getBoundingClientRect().height > 0 &&
+            document.documentElement.scrollHeight <= innerHeight,
+        };
+      });
+      assert.deepEqual(layout, {
+        labels: ['PAUSE', 'RESTART', 'MAIN MENU', 'SOUND ON'],
+        oneRow: true, abovePrompt: true, fits: true,
+      });
+    };
+    await verifyLayout();
+    if (label === 'touch') {
+      for (const viewport of [{ width: 320, height: 568 }, { width: 740, height: 360 }]) {
+        await page.setViewportSize(viewport);
+        await verifyLayout();
+      }
+      await page.setViewportSize(options.viewport);
+    }
+    await page.getByRole('button', { name: 'Sound On' }).click();
+    assert.equal(await page.getByRole('button', { name: 'Sound Off' }).getAttribute('aria-pressed'), 'false');
+    await page.getByRole('button', { name: 'Sound Off' }).click();
+    assert.equal(await page.getByRole('button', { name: 'Sound On' }).getAttribute('aria-pressed'), 'true');
+    assert.deepEqual(await page.evaluate(() => window.catSpeech), []);
     assert.equal(await page.locator('#grid .tile').count(), 9);
     assert.equal(await page.locator('#english').textContent(), 'I have many cats.');
     const move = async (word, correct = true) => {
@@ -100,11 +133,11 @@ try {
       ['es-ES', 'Yo'], ['es-ES', 'tengo'], ['es-ES', 'muchos'], ['es-ES', 'gatos'],
       ['es-ES', 'Yo tengo muchos gatos.'],
     ]);
-    await page.getByRole('button', { name: 'RESTART' }).click();
-    await page.getByRole('button', { name: 'PAUSE (P)', exact: true }).click();
+    await page.getByRole('button', { name: 'Restart' }).click();
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await page.getByText('PAUSED', { exact: true }).waitFor();
-    await page.getByRole('button', { name: 'RESUME (P)', exact: true }).click();
-    await page.getByRole('button', { name: 'MENU', exact: true }).click();
+    await page.getByRole('button', { name: 'Resume', exact: true }).click();
+    await page.getByRole('button', { name: 'Main Menu', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Play sample' }).isVisible(), true);
     assert.deepEqual(errors, []);
     assert.deepEqual(external, []);
