@@ -1,5 +1,5 @@
 'use strict';
-const examples=[
+let examples=[
 {en:'I have many cats.',es:'Yo tengo muchos gatos.',words:['Yo','tengo','muchos','gatos'],distractors:['tienes','somos','perros','gato','tiene','hay','unas','grandes','soy','ellos','pocos','casa','tenemos']},
 {en:'She eats an apple.',es:'Ella come una manzana.',words:['Ella','come','una','manzana'],distractors:['Él','comen','un','manzanas','bebe','ellos','tengo','la','comemos','peras','comer','soy']},
 {en:'We live in Denmark.',es:'Nosotros vivimos en Dinamarca.',words:['Nosotros','vivimos','en','Dinamarca'],distractors:['Yo','vivo','son','de','Alemania','vivir','tenemos','ellos','viven','un','estamos','casa']},
@@ -26,7 +26,7 @@ function walkCat(from,to,dir){return new Promise(resolve=>{
  else{walker.style.transition='left .35s ease-in-out,top .35s ease-in-out';requestAnimationFrame(()=>{walker.style.left=x2+'px';walker.style.top=y2+'px'});setTimeout(finish,370)}
 })}
 function render(){const ex=examples[round];$('english').textContent=ex.en;$('progress').textContent=`${round+1} / ${examples.length} · ${step}/${ex.words.length}`;$('sentence').replaceChildren();ex.words.forEach((w,i)=>{const span=document.createElement('span');span.className='token'+(i<step?' done':'');span.textContent=i<step?w:'?';$('sentence').append(span)});$('grid').replaceChildren();for(let i=0;i<9;i++){const d=document.createElement('div');d.className='tile'+(i===pos?' player':'')+(neighbors(pos).includes(i)?' reachable':'');d.innerHTML=(i===pos?catSVG:mouseSVG)+(i===pos?'':`<span class="word"></span>`);if(i!==pos)d.querySelector('.word').textContent=board[i];$('grid').append(d)}}
-function speak(text){if(!voiceOn||!('speechSynthesis' in window))return Promise.resolve();return new Promise(resolve=>{const u=new SpeechSynthesisUtterance(text);u.lang=selectedLocale;const match=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase()===selectedLocale.toLowerCase())||speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith(selectedLocale.slice(0,2).toLowerCase()));if(match)u.voice=match;u.rate=.84;let done=false;const finish=()=>{if(!done){done=true;resolve()}};u.onend=finish;u.onerror=finish;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);setTimeout(finish,Math.max(2500,text.length*180))})}
+function speak(text){if(voiceOn&&shellSession)return shellSession.speak(text);if(!voiceOn||!('speechSynthesis' in window))return Promise.resolve();return new Promise(resolve=>{const u=new SpeechSynthesisUtterance(text);u.lang=selectedLocale;const match=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase()===selectedLocale.toLowerCase())||speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith(selectedLocale.slice(0,2).toLowerCase()));if(match)u.voice=match;u.rate=.84;let done=false;const finish=()=>{if(!done){done=true;resolve()}};u.onend=finish;u.onerror=finish;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);setTimeout(finish,Math.max(2500,text.length*180))})}
 function overlay(content){$('overlayContent').replaceChildren();$('overlayContent').append(content);$('overlay').hidden=false}
 function hideOverlay(){$('overlay').hidden=true}
 function showNope(){const el=document.createElement('div');el.className='nope-face';el.innerHTML=sadCatSVG+'<span class="big nope">NOPE</span>';overlay(el);clearTimeout(timeout);timeout=setTimeout(hideOverlay,430)}
@@ -50,7 +50,7 @@ async function move(dir){
   if(token===epoch){busy=false;render()}
  }
 }
-function restart(){paused=false;$('pause').textContent='Pause';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();clearTimeout(timeout);hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
+function restart(){shellSession?.cancel();paused=false;$('pause').textContent='Pause';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();clearTimeout(timeout);hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
 document.addEventListener('keydown',e=>{if($('preview').hidden===false)return;if(e.key.toLowerCase()==='p'){e.preventDefault();togglePause();return}const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};if(map[e.key]){e.preventDefault();move(map[e.key])}});// Swipe on the grid: one cardinal move per gesture, never diagonal.
 let touchStart=null;
 $('grid').addEventListener('touchstart',e=>{
@@ -75,9 +75,12 @@ function togglePause(){
  else hideOverlay();
 }
 $('pause').addEventListener('click',togglePause);
-$('restart').addEventListener('click',restart);$('sound').addEventListener('click',()=>{voiceOn=!voiceOn;$('sound-icon').textContent=voiceOn?'🔊':'🔇';$('sound-label').textContent=voiceOn?'Sound On':'Sound Off';$('sound').setAttribute('aria-pressed',String(voiceOn));if(!voiceOn&&'speechSynthesis'in window)window.speechSynthesis.cancel();});
+$('restart').addEventListener('click',restart);
+function setSound(on){voiceOn=on;$('sound-icon').textContent=voiceOn?'🔊':'🔇';$('sound-label').textContent=voiceOn?'Sound On':'Sound Off';$('sound').setAttribute('aria-pressed',String(voiceOn));if(!voiceOn&&'speechSynthesis'in window)window.speechSynthesis.cancel();}
+$('sound').addEventListener('click',()=>{setSound(!voiceOn);shellSession?.sound(voiceOn);});
 
-const selectedLocale = 'es-ES';
+let selectedLocale = 'es-ES';
+let shellSession = null;
 const game = document.querySelector('main');
 $('play').addEventListener('click', () => {
   $('preview').hidden = true;
@@ -86,6 +89,7 @@ $('play').addEventListener('click', () => {
   $('pause').focus();
 });
 $('menu').addEventListener('click', () => {
+  if (shellSession) { shellSession.menu(); return; }
   restart();
   game.hidden = true;
   $('preview').hidden = false;
