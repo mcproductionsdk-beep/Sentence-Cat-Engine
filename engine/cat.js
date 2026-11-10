@@ -50,7 +50,7 @@ async function move(dir){
   if(token===epoch){busy=false;render()}
  }
 }
-function restart(){paused=false;$('pause').textContent='PAUSE (P)';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();clearTimeout(timeout);hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
+function restart(){paused=false;$('pause').textContent='Pause';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();clearTimeout(timeout);hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
 document.addEventListener('keydown',e=>{if($('preview').hidden===false)return;if(e.key.toLowerCase()==='p'){e.preventDefault();togglePause();return}const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};if(map[e.key]){e.preventDefault();move(map[e.key])}});// Swipe on the grid: one cardinal move per gesture, never diagonal.
 let touchStart=null;
 $('grid').addEventListener('touchstart',e=>{
@@ -69,20 +69,13 @@ $('grid').addEventListener('touchcancel',()=>{touchStart=null});
 function togglePause(){
  if(busy)return;
  paused=!paused;
- $('pause').textContent=paused?'RESUME (P)':'PAUSE (P)';
+ $('pause').textContent=paused?'Resume':'Pause';
  $('status').textContent=paused?'Paused':'Swipe to help the cat catch the correct mouse.';
  if(paused){const el=document.createElement('div');el.className='big';el.textContent='PAUSED';overlay(el)}
  else hideOverlay();
 }
 $('pause').addEventListener('click',togglePause);
-$('fullscreen').addEventListener('click',async()=>{
- try{
-  if(document.fullscreenElement)await document.exitFullscreen();
-  else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
- }catch(e){$('status').textContent='Fullscreen is not available in this browser.'}
-});
-document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'EXIT FULLSCREEN':'FULLSCREEN'});
-$('restart').addEventListener('click',restart);$('sound').addEventListener('click',()=>{voiceOn=!voiceOn;$('sound').textContent=voiceOn?'🔊 SENTENCE':'🔇 MUTED';$('sound').setAttribute('aria-pressed',String(voiceOn));if(!voiceOn&&'speechSynthesis'in window)window.speechSynthesis.cancel();else if(voiceOn)speak(examples[round].words.slice(0,step).join(' ')||examples[round].es)});
+$('restart').addEventListener('click',restart);$('sound').addEventListener('click',()=>{voiceOn=!voiceOn;$('sound-icon').textContent=voiceOn?'🔊':'🔇';$('sound-label').textContent=voiceOn?'Sound On':'Sound Off';$('sound').setAttribute('aria-pressed',String(voiceOn));if(!voiceOn&&'speechSynthesis'in window)window.speechSynthesis.cancel();});
 
 const selectedLocale = 'es-ES';
 const game = document.querySelector('main');

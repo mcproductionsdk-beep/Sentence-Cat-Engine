@@ -14,6 +14,13 @@
     <p>Play a fixed Spanish sample using arrow keys or swipes. This preview uses sample sentences only.</p>
     <button id="play">Play sample</button>
   </section>
-  <main hidden><header class="top"><div><div class="logo">▣ SENTENCE CAT</div><div class="muted">BORING TEACHER · SENTENCE CAT</div></div><div class="progress" id="progress"></div></header><section class="panel"><div class="labels">ENGLISH · PROMPT</div><p class="prompt" id="english"></p><div class="labels">TARGET LANGUAGE · BUILD THE SENTENCE</div><div class="sentence" id="sentence"></div></section><section class="game"><div class="grid" id="grid" aria-label="3 by 3 word selection grid"></div><div class="overlay" id="overlay" hidden aria-live="assertive"><div id="overlayContent"></div></div></section><div class="status" id="status" aria-live="polite">Swipe to help the cat catch the correct mouse.</div><div class="actions"><button id="pause">PAUSE (P)</button><button class="primary" id="restart">RESTART</button><button id="menu">MENU</button><button id="sound" aria-pressed="true">🔊 SENTENCE</button><button id="fullscreen">FULLSCREEN</button></div></main>
+  <main hidden><header class="top"><div><h1 class="logo">Sentence Cat</h1></div><div class="progress" id="progress"></div></header>
+    <nav class="actions" aria-label="Game controls">
+      <button id="pause">Pause</button>
+      <button id="restart">Restart</button>
+      <button id="menu">Main Menu</button>
+      <button id="sound" aria-pressed="true"><span id="sound-icon" aria-hidden="true">🔊</span> <span id="sound-label">Sound On</span></button>
+    </nav>
+    <section class="panel"><div class="labels">ENGLISH · PROMPT</div><p class="prompt" id="english"></p><div class="labels">TARGET LANGUAGE · BUILD THE SENTENCE</div><div class="sentence" id="sentence"></div></section><section class="game"><div class="grid" id="grid" aria-label="3 by 3 word selection grid"></div><div class="overlay" id="overlay" hidden aria-live="assertive"><div id="overlayContent"></div></div></section><div class="status" id="status" aria-live="polite">Swipe to help the cat catch the correct mouse.</div></main>
 </body>
 </html>
