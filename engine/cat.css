@@ -43,3 +43,39 @@ main{height:100vh;height:100dvh;max-width:850px;display:flex;flex-direction:colu
 #preview { max-width: 34rem; margin: 10vh auto; padding: 1rem; }
 #preview button { background: #167c77; color: white; border: 1px solid #6ee7b7; border-radius: 7px; padding: 10px 16px; }
 main[hidden] { display: none; }
+
+/* Shared action order and arcade geometry, using Sentence Cat's palette. */
+.top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 6px;
+}
+.top > div:first-child { grid-column: 2; }
+.logo { margin: 0; text-align: center; text-transform: uppercase; }
+.progress { justify-self: end; white-space: nowrap; font-size: clamp(10px, 2.3vw, 16px); }
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(100%, 560px);
+  margin-inline: auto;
+  gap: clamp(4px, 1vw, 10px);
+}
+.actions button {
+  min-height: 44px;
+  padding: 4px 2px;
+  border: 3px solid #0a1424;
+  border-radius: 0;
+  box-shadow: inset 2px 2px #77c9d1, inset -2px -2px #122942;
+  background: #233d59;
+  color: #f0f7ff;
+  font-size: clamp(9px, 2.7vw, 14px);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.actions button:first-child { background: #17606b; }
+.actions button:nth-child(3) { background: #182e46; }
+.actions button:hover { background: #2b516d; }
+.actions button:active { box-shadow: inset 2px 2px #122942; }
+@media (max-width: 360px) {
+  #sound-icon { display: none; }
+}
