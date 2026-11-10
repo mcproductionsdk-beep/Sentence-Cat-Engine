@@ -5,14 +5,15 @@ const root = new URL('../', import.meta.url);
 const output = new URL('dist-preview/', root);
 const files = [
   ['preview/index.html', 'index.html'],
+  ['engine/sentence-session.mjs', 'engine/sentence-session.mjs'],
   ['engine/cat.js', 'engine/cat.js'],
   ['engine/cat.css', 'engine/cat.css'],
 ];
 
 const headers = `/*
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors https://bt-vocabulary-platform-staging.pages.dev https://*.bt-vocabulary-platform-staging.pages.dev
   X-Content-Type-Options: nosniff
-  Referrer-Policy: no-referrer
+  Referrer-Policy: strict-origin
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
 `;
@@ -29,7 +30,7 @@ for (const [destination, content] of assets) {
 
 const manifest = {
   environment: 'staging',
-  mode: 'isolated-fixture',
+  mode: 'sentence-session-v1',
   sourceCommit: process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || 'local',
   baselineBlob: 'bbf9001fdebce5ecaa2ed7393cdd7bdacddf94c2',
   buildId: hash.digest('hex'),
@@ -40,6 +41,7 @@ await mkdir(new URL('engine/', output), { recursive: true });
 for (const [destination, content] of assets) {
   await writeFile(new URL(destination, output), content);
 }
+await writeFile(new URL('engine/build-id.mjs', output), 'export default ' + JSON.stringify(manifest.buildId) + ';\n');
 await writeFile(new URL('_headers', output), headers);
 await writeFile(new URL('version.json', output), JSON.stringify(manifest, null, 2) + '\n');
 console.log('Built Sentence Cat staging preview:', manifest.buildId);
