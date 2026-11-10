@@ -1,0 +1,45 @@
+
+:root{font-family:ui-monospace,Consolas,'Courier New',monospace;color:#f0f7ff;background:#0b1424}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#203b56,#0b1424 68%)}button,select{font:inherit}button{cursor:pointer}main{max-width:850px;margin:0 auto;padding:18px 14px 35px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.logo{font-weight:900;color:#6ee7db;font-size:21px}.muted{color:#a8c2d7;font-size:12px}.panel{background:#16273e;border:2px solid #3c6380;border-radius:12px;padding:16px;margin:14px 0;box-shadow:5px 5px 0 #07101d}.labels{font-size:11px;letter-spacing:1.3px;color:#8fb2d4;margin:0 0 8px}.prompt{font-size:clamp(19px,3.5vw,27px);font-weight:800;margin:0 0 14px}.sentence{display:flex;gap:7px;flex-wrap:wrap;min-height:45px;align-items:center}.token{padding:8px 10px;border:1px solid #4d7793;border-radius:6px;background:#233c55;font-size:clamp(15px,2.6vw,19px)}.token.done{background:#10545b;border-color:#6ee7b7;color:#a7ffe1}.game{position:relative;max-width:510px;margin:14px auto}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;touch-action:none;overscroll-behavior:contain}.tile{aspect-ratio:1.35;min-height:75px;display:grid;place-items:center;text-align:center;padding:5px;background:#283f5d;border:2px solid #557391;border-radius:9px;font-size:clamp(14px,3vw,22px);font-weight:800;overflow-wrap:anywhere;user-select:none}.tile.player{background:#087f9c;border:3px solid #82e9ff;box-shadow:0 0 17px #00d5ff80;color:#fff}.tile.reachable:not(.player){border-color:#85a6bf}.tile.wrong{background:#702b3e}.overlay{position:absolute;inset:0;display:grid;place-items:center;background:#09172be6;border-radius:10px;z-index:3;text-align:center;padding:18px}.overlay[hidden]{display:none}.overlay .big{font-size:clamp(35px,7vw,58px);font-weight:1000;color:#6ee7b7;text-shadow:3px 4px #04121d}.overlay .nope{color:#ff4b67;font-size:clamp(42px,9vw,72px)}.overlay .complete{font-size:clamp(19px,4vw,31px);line-height:1.45;margin-top:15px}.controls{display:grid;grid-template-columns:repeat(3,64px);gap:5px;justify-content:center;margin:15px 0}.controls button{height:50px;border:2px solid #77a9c5;background:#234562;color:white;border-radius:8px;font-size:24px;font-weight:bold}.controls .blank{visibility:hidden}.controls button:active{background:#157d94}.actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}.actions button,.actions select{border:2px solid #6487a9;background:#233d59;color:#fff;padding:10px 12px;border-radius:7px}.actions .primary{background:#167c77;border-color:#6ee7b7}.status{text-align:center;min-height:22px;color:#b8d2e4;font-size:13px}.foot{font-size:12px;color:#a9c1d7;text-align:center;line-height:1.6}.progress{color:#9deac8;font-weight:bold}button:focus-visible{outline:3px solid #fff;outline-offset:3px}@media(max-width:450px){.tile{min-height:68px}.panel{padding:12px}.controls button{height:47px}}
+
+/* Fit the complete game into the visible mobile viewport, including browser chrome. */
+html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+main{height:100vh;height:100dvh;max-width:850px;display:flex;flex-direction:column;gap:clamp(5px,1.1dvh,12px);padding:clamp(7px,1.2dvh,14px) 12px;overflow:hidden}
+.top{flex:0 0 auto}.logo{font-size:clamp(15px,2.5dvh,21px)}.muted{font-size:10px}
+.panel{flex:0 0 auto;margin:0;padding:clamp(8px,1.4dvh,14px)}.labels{margin:0 0 3px;font-size:10px}.prompt{font-size:clamp(16px,2.8dvh,26px);margin:0 0 clamp(5px,1dvh,10px)}
+.sentence{min-height:0;gap:5px}.token{padding:clamp(4px,.8dvh,8px) 7px;font-size:clamp(12px,2.1dvh,18px)}
+.game{flex:1 1 0;min-height:0;width:100%;max-width:510px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.grid{width:100%;height:100%;min-height:0;grid-template-rows:repeat(3,minmax(0,1fr));gap:clamp(4px,.8dvh,8px)}
+.tile{min-height:0;aspect-ratio:auto;font-size:clamp(12px,2.6dvh,22px);padding:3px}
+.status{flex:0 0 auto;min-height:0;font-size:clamp(10px,1.8dvh,13px);line-height:1.25}
+.actions{flex:0 0 auto;gap:clamp(3px,1vw,8px);flex-wrap:nowrap}
+.actions button{flex:1 1 0;min-width:0;padding:clamp(5px,.9dvh,9px) 2px;font-size:clamp(8px,1.6dvh,12px);white-space:nowrap;border-width:1px}
+@media(max-width:450px){.panel{padding:8px}.tile{min-height:0}.actions{gap:3px}}
+@media(max-height:590px){.muted{display:none}.labels{font-size:9px}.panel{padding:6px}.actions button{padding:4px 1px}}
+
+/* Sentence Cat: crisp, self-contained pixel characters. */
+.tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:linear-gradient(180deg,#294260,#1d3048);border-radius:8px;transition:background .12s,border-color .12s}
+.tile.player{background:linear-gradient(180deg,#174c61,#0d3447)}
+.tile .sprite{height:clamp(24px,5.5dvh,52px);width:clamp(30px,7dvh,62px);flex:0 1 auto;image-rendering:pixelated;filter:drop-shadow(2px 3px 0 #0a1528)}
+.tile .word{font-size:clamp(11px,2.2dvh,19px);line-height:1.1;max-width:100%;overflow-wrap:anywhere;color:#f4f9ff;text-shadow:1px 2px #101c2d}
+.tile.player .sprite{animation:catIdle 1.25s steps(2,end) infinite}
+.tile.pounce .sprite{animation:catPounce .2s steps(2,end) 1}
+.tile.escape .sprite{animation:mouseEscape .23s steps(2,end) 1}
+@keyframes catIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes catPounce{50%{transform:translateY(-10px) scale(1.08)}}
+@keyframes mouseEscape{50%{transform:translateX(7px) rotate(8deg)}}
+@media(max-height:620px){.tile .sprite{height:clamp(19px,4dvh,35px);width:clamp(23px,5dvh,40px)}.tile .word{font-size:clamp(10px,1.9dvh,15px)}}
+
+/* High-resolution crisp pixel sprites and actual cell-to-cell walking. */
+.tile .sprite{width:clamp(38px,8dvh,76px);height:clamp(36px,7dvh,68px)}
+.game{isolation:isolate}.walker{position:absolute;z-index:5;pointer-events:none;display:grid;place-items:center;will-change:left,top;transform:translate(-50%,-50%)}
+.walker .sprite{width:clamp(44px,9dvh,82px);height:clamp(42px,8dvh,76px);image-rendering:pixelated;filter:drop-shadow(3px 4px 0 #081320);animation:walkingFeet .13s steps(2,end) infinite}
+.walker.left .sprite{transform:scaleX(-1)}
+@keyframes walkingFeet{0%,100%{margin-top:0}50%{margin-top:-5px}}
+.tile.player.walking .sprite{visibility:hidden}
+.nope-face{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}.nope-face .sadcat{width:clamp(85px,22vw,145px);height:auto;image-rendering:pixelated;filter:drop-shadow(4px 5px 0 #071020)}
+@media(max-height:620px){.tile .sprite{width:clamp(26px,5dvh,48px);height:clamp(26px,5dvh,48px)}}
+@media(prefers-reduced-motion:reduce){.walker .sprite{animation:none}}
+
+#preview { max-width: 34rem; margin: 10vh auto; padding: 1rem; }
+#preview button { background: #167c77; color: white; border: 1px solid #6ee7b7; border-radius: 7px; padding: 10px 16px; }
+main[hidden] { display: none; }
