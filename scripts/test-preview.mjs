@@ -12,7 +12,7 @@ const paths = new Map([
   ['/engine/cat.css', ['engine/cat.css', 'text/css; charset=utf-8']],
 ]);
 const server = createServer(async (request, response) => {
-  const asset = paths.get(request.url);
+  const asset = paths.get(new URL(request.url, 'http://localhost').pathname);
   if (!asset) return response.writeHead(404).end();
   const [file, type] = asset;
   response.writeHead(200, { 'Content-Type': type, 'Content-Security-Policy': csp });
@@ -48,7 +48,8 @@ try {
         queueMicrotask(() => utterance.onend());
       };
     });
-    await page.goto(url + '/?autoplay=1#set=SABCDEFGH');
+    const response = await page.goto(url + '/?autoplay=1#set=SABCDEFGH');
+    assert.equal(response.status(), 200);
     assert.equal(await page.locator('main').isVisible(), false);
     await page.getByRole('button', { name: 'Play sample' }).click();
     assert.equal(await page.locator('#grid .tile').count(), 9);
