@@ -66,10 +66,12 @@ try {
         await page.keyboard.press(key);
       } else {
         const grid = page.locator('#grid');
-        await grid.dispatchEvent('touchstart', { touches: [{ clientX: 100, clientY: 100 }] });
-        await grid.dispatchEvent('touchend', {
-          changedTouches: [{ clientX: 100 + x, clientY: 100 + y }],
-        });
+        await grid.evaluate((target, [x, y]) => {
+          const start = new Touch({ identifier: 1, target, clientX: 100, clientY: 100 });
+          const end = new Touch({ identifier: 1, target, clientX: 100 + x, clientY: 100 + y });
+          target.dispatchEvent(new TouchEvent('touchstart', { touches: [start] }));
+          target.dispatchEvent(new TouchEvent('touchend', { changedTouches: [end] }));
+        }, [x, y]);
       }
     };
     await move('Yo', false);
