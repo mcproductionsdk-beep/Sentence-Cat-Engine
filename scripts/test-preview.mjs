@@ -75,9 +75,20 @@ try {
         }, [x, y]);
       }
     };
+    await page.evaluate(() => {
+      const overlay = document.querySelector('#overlay');
+      const observer = new MutationObserver(() => {
+        if (!overlay.hidden && overlay.querySelector('.nope')?.textContent === 'NOPE') {
+          overlay.dataset.testSawNope = 'true';
+          observer.disconnect();
+        }
+      });
+      observer.observe(overlay, { attributes: true, attributeFilter: ['hidden'] });
+    });
     await move('Yo', false);
-    await page.getByText('NOPE', { exact: true }).waitFor();
+    await page.waitForFunction(() => document.querySelector('#overlay').dataset.testSawNope === 'true');
     await page.waitForFunction(() => !busy);
+    assert.match(await page.locator('#status').textContent(), /Wrong mouse/);
     for (const [index, word] of ['Yo', 'tengo', 'muchos', 'gatos'].entries()) {
       await move(word);
       await page.waitForFunction(step =>
