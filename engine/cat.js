@@ -10,21 +10,73 @@ const $=id=>document.getElementById(id);let round=0,step=0,pos=4,board=[],busy=f
 function shuffled(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function neighbors(p){const r=Math.floor(p/3),c=p%3;return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([y,x])=>y>=0&&y<3&&x>=0&&x<3).map(([y,x])=>y*3+x)}
 function makeBoard(){const ex=examples[round];const adj=neighbors(pos);const answerCell=adj[Math.floor(Math.random()*adj.length)];const choices=shuffled((ex.distractors||[]).filter(w=>w!==ex.words[step]));board=Array(9).fill('');let k=0;for(let i=0;i<9;i++){if(i===pos)continue;board[i]=i===answerCell?ex.words[step]:choices.length?choices[k++%choices.length]:"…"}render()}
-const catSVG=`<svg class="sprite" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="crispEdges"><path fill="#d97722" d="M5 7h5v4h3V8h6v3h3V7h5v13h-2v5h-4v3H9v-3H5z"/><path fill="#f5a34d" d="M8 12h16v11H8z"/><path fill="#152238" d="M10 15h4v4h-4zm9 0h4v4h-4z"/><path fill="#fce6bb" d="M14 20h5v4h-5z"/><path fill="#ee7e93" d="M15 20h3v2h-3z"/><path fill="#f2b5ad" d="M7 9h2v3H7zm17 0h2v3h-2z"/><path fill="#e68b35" d="M25 24h4v-3h2v7h-4v-2h-2z"/><path stroke="#ffe4bb" stroke-width="1" d="M12 22H4m17 0h8"/></svg>`;
-const mouseSVG=`<svg class="sprite" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="crispEdges"><path fill="#8494ab" d="M5 8h7v4h7V8h7v8h2v9H4v-9h1z"/><path fill="#b9c7d8" d="M7 10h4v5H7zm13 0h4v5h-4zM7 16h18v8H7z"/><path fill="#233047" d="M10 17h3v3h-3zm10 0h3v3h-3z"/><path fill="#f2a1b2" d="M15 21h3v3h-3z"/><path stroke="#dbe7f1" stroke-width="1" d="M14 24H3m16 0h10"/><path fill="#9ba9bb" d="M26 24h4v2h2v3h-4v-2h-2z"/></svg>`;
+const catSVG=`<svg class="sprite" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="crispEdges">
+<path fill="#181d29" d="M12 3h5v3h4v5h4v3h14v-3h5V6h4V3h5v25h-3v7h-5v7h4v12h-3v7H16v-4h-5V43h4v-8h-5v-7H8V11h4zM49 39h7v-8h6v18h-3v7H47v-6h7v-6h-5z"/>
+<path fill="#a6521d" d="M13 11h5v5h7v3h14v-3h8v-5h3v16h-4v8H17v-8h-5zM18 36h24v6h4v12h-5v4H20v-4h-5V44h3zM55 35h4v14h-4v4h-7v-4h7z"/>
+<path fill="#df852c" d="M14 8h3v7h5v5h21v-5h5V8h2v18h-5v8H17v-8h-5V16h2zM20 35h20v7h4v11H18V42h2z"/>
+<path fill="#f4ad4e" d="M17 19h29v9h-4v6H20v-5h-5v-8h2zM19 42h7v12h-7zM36 42h6v12h-6z"/>
+<path fill="#e8a0a1" d="M14 9h3v6h4v4h-7zM48 9h2v10h-8v-4h6z"/>
+<path fill="#8b451f" d="M26 17h4v7h-4zm7 0h4v7h-4zM12 25h7v3h-7zm0 6h9v3h-8zm30-6h8v3h-8zm-1 6h8v3h-8zM18 43h5v3h-5zm0 7h5v3h-5zm20-7h6v3h-6zm0 7h6v3h-6zM55 39h4v4h-4zm-6 10h6v4h-6z"/>
+<path fill="#fff1d5" d="M20 24h9v10h-9zm15 0h9v10h-9zM25 31h13v7H25zM24 37h14v7h-3v5h-8v-5h-3zM19 54h9v4h-9zm15 0h9v4h-9z"/>
+<path fill="#1d2935" d="M23 25h5v8h-5zm13 0h5v8h-5zM30 34h3v3h-3zm-5 3h5v2h-5zm8 0h5v2h-5zM28 49h3v9h-3zm4 0h3v9h-3z"/>
+<path fill="#ffffff" d="M23 25h2v3h-2zm13 0h2v3h-2z"/>
+<path fill="#dc8b94" d="M29 32h6v3h-2v2h-2v-2h-2z"/>
+<path fill="#f5dec0" d="M15 33h8v1h-8zm0 3h8v1h-8zm25-3h9v1h-9zm0 3h9v1h-9z"/>
+</svg>`;
+const mouseSVG=`<svg class="sprite" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="crispEdges">
+<path fill="#30394c" d="M20 22v-8h4V8h12v3h6v10h4v5h5v7h6v8h-5v7h-7v8H23v-3h-8v-4h-5V35h4v-8h6z"/>
+<path fill="#e59a9d" d="M13 46H8v8h5v3h19v3h6v3h-4v-3H12v-3H5v-5H2v-8h5v-5h6v4H8v3h5z"/>
+<path fill="#8997ac" d="M17 29h7V18h4v-6h9v5h3v9h6v7h6v8h-5v6H36v6H23v-4h-8V37h2z"/>
+<path fill="#c1cbd7" d="M20 30h12v-4h10v7h8v8h-7v7H30v4h-7v-5h-8v-9h5z"/>
+<path fill="#a9b5c4" d="M17 33h6v12h-6zm8-17h3v-4h8v4h4v9h-5v3h-8v-4h-2z"/>
+<path fill="#efb0b1" d="M28 17h8v3h2v5h-4v2h-6v-3h-2v-4h2z"/>
+<path fill="#718198" d="M23 38h5v3h4v7h-4v4h-5v-4h4v-7h-4zM35 48h6v5h-6z"/>
+<path fill="#252b39" d="M41 31h5v7h-5zm9 9h6v3h-6zm-5 5h7v2h-7z"/>
+<path fill="#ffffff" d="M41 31h2v3h-2z"/>
+<path fill="#f0a2ac" d="M53 37h6v4h-6zM22 53h11v3H22zm14-1h9v4h-9z"/>
+<path fill="#dae2e9" d="M54 41h9v1h-9zm-1 3h9v1h-9zm1-6h9v1h-9z"/>
+</svg>`;
 const sadCatSVG=`<svg class="sadcat" viewBox="0 0 64 64" shape-rendering="crispEdges" aria-label="Sad orange pixel cat" xmlns="http://www.w3.org/2000/svg"><path fill="#512c28" d="M7 9h12v7h7v-4h12v4h7V9h12v32h-5v9h-8v5H18v-5h-8v-9H7z"/><path fill="#ee8a2b" d="M10 12h7v10h9v-6h12v6h9V12h7v29h-6v9H16v-9h-6z"/><path fill="#ffb35d" d="M15 26h34v17h-5v5H20v-5h-5z"/><path fill="#f6c29d" d="M12 15h5v8h-5zm35 0h5v8h-5z"/><path fill="#a94c37" d="M18 15h5v7h-5zm23 0h5v7h-5z"/><path fill="#513b40" d="M18 30h10v3H18zm18 0h10v3H36z"/><path fill="#241e31" d="M20 33h8v3h-8zm16 0h8v3h-8z"/><path fill="#f4f6fa" d="M21 36h6v5h-6zm16 0h6v5h-6z"/><path fill="#67d5f5" d="M24 39h5v9h-5zm12 0h5v9h-5z"/><path fill="#f9d2a8" d="M27 40h10v8H27z"/><path fill="#8b4d46" d="M29 41h6v3h-6zm-2 6h10v2H27z"/><path fill="#fff0ce" d="M12 43h9v3h-9zm31 0h9v3h-9z"/><path fill="#e56f28" d="M16 49h9v5h-9zm23 0h9v5h-9z"/></svg>`;
-function walkCat(from,to,dir){return new Promise(resolve=>{
- const game=document.querySelector('.game'),grid=$('grid'),a=grid.children[from],b=grid.children[to];
- if(!a||!b){resolve();return}
- const root=game.getBoundingClientRect(),r1=a.getBoundingClientRect(),r2=b.getBoundingClientRect();
- const x1=r1.left-root.left+r1.width/2,y1=r1.top-root.top+r1.height/2;
- const x2=r2.left-root.left+r2.width/2,y2=r2.top-root.top+r2.height/2;
- const walker=document.createElement('div');walker.className='walker'+(dir==='left'?' left':'');walker.innerHTML=catSVG;
- walker.style.left=x1+'px';walker.style.top=y1+'px';game.append(walker);a.classList.add('walking');
- const finish=()=>{walker.remove();a.classList.remove('walking');resolve()};
- if(walker.animate){const anim=walker.animate([{left:x1+'px',top:y1+'px'},{left:x2+'px',top:y2+'px'}],{duration:350,easing:'ease-in-out',fill:'forwards'});anim.onfinish=finish;anim.oncancel=finish}
- else{walker.style.transition='left .35s ease-in-out,top .35s ease-in-out';requestAnimationFrame(()=>{walker.style.left=x2+'px';walker.style.top=y2+'px'});setTimeout(finish,370)}
-})}
+let activeJump = null;
+function walkCat(from, to, dir) {
+ return new Promise(resolve => {
+  const game = document.querySelector('.game'), grid = $('grid');
+  const origin = grid.children[from], target = grid.children[to];
+  if (!origin || !target) { resolve(); return; }
+  const root = game.getBoundingClientRect(), first = origin.getBoundingClientRect(), last = target.getBoundingClientRect();
+  const x1 = first.left - root.left + first.width / 2, y1 = first.top - root.top + first.height / 2;
+  const x2 = last.left - root.left + last.width / 2, y2 = last.top - root.top + last.height / 2;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lift = reduced ? 0 : Math.min(46, Math.max(18, first.height * .25));
+  const walker = document.createElement('div');
+  walker.className = 'walker' + (dir === 'left' ? ' left' : '') + (reduced ? ' reduced' : '');
+  walker.innerHTML = catSVG;
+  walker.style.left = x1 + 'px'; walker.style.top = y1 + 'px';
+  game.append(walker); origin.classList.add('walking');
+  let finished = false, timer;
+  const finish = () => {
+   if (finished) return;
+   finished = true; clearTimeout(timer);
+   walker.remove(); origin.classList.remove('walking');
+   if (activeJump?.finish === finish) activeJump = null;
+   resolve();
+  };
+  if (walker.animate) {
+   const frames = [0, .2, .5, .8, 1].map(progress => ({
+    left: (x1 + (x2 - x1) * progress) + 'px',
+    top: (y1 + (y2 - y1) * progress - Math.sin(Math.PI * progress) * lift) + 'px',
+    offset: progress,
+   }));
+   const animation = walker.animate(frames, {duration: reduced ? 100 : 420, easing: 'linear', fill: 'forwards'});
+   activeJump = {finish, cancel: () => animation.cancel()};
+   animation.onfinish = finish; animation.oncancel = finish;
+  } else {
+   walker.style.left = x2 + 'px'; walker.style.top = y2 + 'px';
+   activeJump = {finish, cancel: finish};
+   timer = setTimeout(finish, 100);
+  }
+ });
+}
 function render(){const ex=examples[round];$('english').textContent=ex.en;$('progress').textContent=`${round+1} / ${examples.length} · ${step}/${ex.words.length}`;$('sentence').replaceChildren();ex.words.forEach((w,i)=>{const span=document.createElement('span');span.className='token'+(i<step?' done':'');span.textContent=i<step?w:'?';$('sentence').append(span)});$('grid').replaceChildren();for(let i=0;i<9;i++){const d=document.createElement('div');d.className='tile'+(i===pos?' player':'')+(neighbors(pos).includes(i)?' reachable':'');d.innerHTML=(i===pos?catSVG:mouseSVG)+(i===pos?'':`<span class="word"></span>`);if(i!==pos)d.querySelector('.word').textContent=board[i];$('grid').append(d)}}
 function speak(text){if(voiceOn&&shellSession)return shellSession.speak(text);if(!voiceOn||!('speechSynthesis' in window))return Promise.resolve();return new Promise(resolve=>{const u=new SpeechSynthesisUtterance(text);u.lang=selectedLocale;const match=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase()===selectedLocale.toLowerCase())||speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith(selectedLocale.slice(0,2).toLowerCase()));if(match)u.voice=match;u.rate=.84;let done=false;const finish=()=>{if(!done){done=true;resolve()}};u.onend=finish;u.onerror=finish;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);setTimeout(finish,Math.max(2500,text.length*180))})}
 function overlay(content){$('overlayContent').replaceChildren();$('overlayContent').append(content);$('overlay').hidden=false}
@@ -50,7 +102,7 @@ async function move(dir){
   if(token===epoch){busy=false;render()}
  }
 }
-function restart(){shellSession?.cancel();paused=false;$('pause').textContent='Pause';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();clearTimeout(timeout);hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
+function restart(){activeJump?.cancel();shellSession?.cancel();paused=false;$('pause').textContent='Pause';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();clearTimeout(timeout);hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
 document.addEventListener('keydown',e=>{if($('preview').hidden===false)return;if(e.key.toLowerCase()==='p'){e.preventDefault();togglePause();return}const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};if(map[e.key]){e.preventDefault();move(map[e.key])}});// Swipe on the grid: one cardinal move per gesture, never diagonal.
 let touchStart=null;
 $('grid').addEventListener('touchstart',e=>{
