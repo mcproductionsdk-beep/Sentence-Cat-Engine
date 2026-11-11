@@ -79,3 +79,14 @@ main[hidden] { display: none; }
 @media (max-width: 360px) {
   #sound-icon { display: none; }
 }
+
+/* Center the sentence instructions, prompt, and answer tiles together. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.panel .labels, .panel .prompt, .panel .sentence { max-width: 100%; }
+.panel .sentence { justify-content: center; }
