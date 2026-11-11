@@ -7,6 +7,14 @@ let examples=[
 {en:'The children are playing in the park.',es:'Los niños juegan en el parque.',words:['Los','niños','juegan','en','el','parque'],distractors:['Las','niñas','juega','con','la','casa','somos','jugamos','están','árbol','ellos','de']}
 ];
 const $=id=>document.getElementById(id);let round=0,step=0,pos=4,board=[],busy=false,voiceOn=true,timeout=null,epoch=0,paused=false;
+const lifecycle=BTSentenceLifecycle.create({
+ canPause:()=>!document.querySelector('main').hidden,
+ label:on=>{$('pause').textContent=on?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(on))},
+ cancelVoice:()=>{shellSession?.cancel();window.speechSynthesis?.cancel()},
+ pause:()=>{paused=true;touchStart=null;activeJump?.pause()},
+ resume:()=>{paused=false;touchStart=null;activeJump?.resume()}
+});
+async function ready(token){return token===epoch&&await lifecycle.checkpoint()&&token===epoch}
 function shuffled(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function neighbors(p){const r=Math.floor(p/3),c=p%3;return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([y,x])=>y>=0&&y<3&&x>=0&&x<3).map(([y,x])=>y*3+x)}
 function makeBoard(){const ex=examples[round];const adj=neighbors(pos);const answerCell=adj[Math.floor(Math.random()*adj.length)];const choices=shuffled((ex.distractors||[]).filter(w=>w!==ex.words[step]));board=Array(9).fill('');let k=0;for(let i=0;i<9;i++){if(i===pos)continue;board[i]=i===answerCell?ex.words[step]:choices.length?choices[k++%choices.length]:"…"}render()}
@@ -56,7 +64,7 @@ function walkCat(from, to, dir) {
   let finished = false, timer;
   const finish = () => {
    if (finished) return;
-   finished = true; clearTimeout(timer);
+   finished = true; timer?.cancel();
    walker.remove(); origin.classList.remove('walking');
    if (activeJump?.finish === finish) activeJump = null;
    resolve();
@@ -68,21 +76,29 @@ function walkCat(from, to, dir) {
     offset: progress,
    }));
    const animation = walker.animate(frames, {duration: reduced ? 100 : 420, easing: 'linear', fill: 'forwards'});
-   activeJump = {finish, cancel: () => animation.cancel()};
+   activeJump = {finish, cancel: () => animation.cancel(), pause:()=>animation.pause(), resume:()=>animation.play()};
    animation.onfinish = finish; animation.oncancel = finish;
   } else {
    walker.style.left = x2 + 'px'; walker.style.top = y2 + 'px';
-   activeJump = {finish, cancel: finish};
-   timer = setTimeout(finish, 100);
+   activeJump = {finish, cancel: finish, pause(){}, resume(){}};
+   timer = lifecycle.after(finish, 100);
   }
  });
 }
 function render(){const ex=examples[round];$('english').textContent=ex.en;$('progress').textContent=`${round+1} / ${examples.length} · ${step}/${ex.words.length}`;$('sentence').replaceChildren();ex.words.forEach((w,i)=>{const span=document.createElement('span');span.className='token'+(i<step?' done':'');span.textContent=i<step?w:'?';$('sentence').append(span)});$('grid').replaceChildren();for(let i=0;i<9;i++){const d=document.createElement('div');d.className='tile'+(i===pos?' player':'')+(neighbors(pos).includes(i)?' reachable':'');d.innerHTML=(i===pos?catSVG:mouseSVG)+(i===pos?'':`<span class="word"></span>`);if(i!==pos)d.querySelector('.word').textContent=board[i];$('grid').append(d)}}
-function speak(text){if(voiceOn&&shellSession)return shellSession.speak(text);if(!voiceOn||!('speechSynthesis' in window))return Promise.resolve();return new Promise(resolve=>{const u=new SpeechSynthesisUtterance(text);u.lang=selectedLocale;const match=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase()===selectedLocale.toLowerCase())||speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith(selectedLocale.slice(0,2).toLowerCase()));if(match)u.voice=match;u.rate=.84;let done=false;const finish=()=>{if(!done){done=true;resolve()}};u.onend=finish;u.onerror=finish;window.speechSynthesis.cancel();window.speechSynthesis.speak(u);setTimeout(finish,Math.max(2500,text.length*180))})}
+function speak(text){return lifecycle.speak(text,{enabled:voiceOn,session:shellSession,locale:selectedLocale,rate:.84})}
 function overlay(content){$('overlayContent').replaceChildren();$('overlayContent').append(content);$('overlay').hidden=false}
 function hideOverlay(){$('overlay').hidden=true}
-function showNope(){const el=document.createElement('div');el.className='nope-face';el.innerHTML=sadCatSVG+'<span class="big nope">NOPE</span>';overlay(el);clearTimeout(timeout);timeout=setTimeout(hideOverlay,430)}
-async function finishSentence(lastWord){busy=true;const token=++epoch;const ex=examples[round];const wrap=document.createElement('div');const line=document.createElement('div');line.className='complete';line.textContent=ex.es;wrap.append(line);overlay(wrap);$('status').textContent='Listening to the final word…';await speak(lastWord);if(token!==epoch)return;await new Promise(r=>setTimeout(r,300));if(token!==epoch)return;$('status').textContent='Listening to the full sentence…';await speak(ex.es);if(token!==epoch)return;await new Promise(r=>setTimeout(r,1300));if(token!==epoch)return;round=(round+1)%examples.length;step=0;pos=4;busy=false;hideOverlay();makeBoard();$('status').textContent='New sentence. Find the first word!'}
+function showNope(){const el=document.createElement('div');el.className='nope-face';el.innerHTML=sadCatSVG+'<span class="big nope">NOPE</span>';overlay(el);timeout?.cancel();timeout=lifecycle.after(hideOverlay,430)}
+async function finishSentence(lastWord){
+ busy=true;const token=++epoch,interruption=lifecycle.interruptions;const ex=examples[round];
+ const wrap=document.createElement('div'),line=document.createElement('div');line.className='complete';line.textContent=ex.es;wrap.append(line);overlay(wrap);
+ $('status').textContent='Listening to the final word…';await speak(lastWord);if(!await ready(token))return;
+ if(!await lifecycle.wait(300)||!await ready(token))return;
+ if(interruption===lifecycle.interruptions){$('status').textContent='Listening to the full sentence…';await speak(ex.es);if(!await ready(token))return}
+ if(!await lifecycle.wait(1300)||!await ready(token))return;
+ round=(round+1)%examples.length;step=0;pos=4;busy=false;hideOverlay();makeBoard();$('status').textContent='New sentence. Find the first word!';
+}
 async function move(dir){
  if(busy||paused)return;
  const r=Math.floor(pos/3),c=pos%3;
@@ -90,20 +106,20 @@ async function move(dir){
  const y=r+delta[0],x=c+delta[1];if(y<0||y>2||x<0||x>2)return;
  const dest=y*3+x,word=board[dest],good=word===examples[round].words[step];
  busy=true;const token=epoch,origin=pos;
- await walkCat(origin,dest,dir);if(token!==epoch)return;
+ await walkCat(origin,dest,dir);if(!await ready(token))return;
  if(good){pos=dest;step++;$('status').textContent=`✓ ${word}`;
   if(step>=examples[round].words.length){render();finishSentence(word)}
-  else{makeBoard();await speak(word);if(token===epoch)busy=false}
+  else{makeBoard();await speak(word);if(await ready(token))busy=false}
  }else{
   const target=$('grid').children[dest];target?.classList.add('escape');
   showNope();$('status').textContent='Wrong mouse! Try another direction.';
-  await new Promise(resolve=>setTimeout(resolve,440));if(token!==epoch)return;
+  if(!await lifecycle.wait(440)||!await ready(token))return;
   await walkCat(dest,origin,dir==='left'?'right':dir==='right'?'left':dir==='up'?'down':'up');
-  if(token===epoch){busy=false;render()}
+  if(await ready(token)){busy=false;render()}
  }
 }
-function restart(){activeJump?.cancel();shellSession?.cancel();paused=false;$('pause').textContent='Pause';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();clearTimeout(timeout);hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
-document.addEventListener('keydown',e=>{if($('preview').hidden===false)return;if(e.key.toLowerCase()==='p'){e.preventDefault();togglePause();return}const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};if(map[e.key]){e.preventDefault();move(map[e.key])}});// Swipe on the grid: one cardinal move per gesture, never diagonal.
+function restart(){epoch++;activeJump?.cancel();lifecycle.begin();paused=false;$('pause').textContent='Pause';epoch++;if('speechSynthesis' in window)window.speechSynthesis.cancel();timeout?.cancel();hideOverlay();busy=false;round=0;step=0;pos=4;makeBoard();$('status').textContent='Catch the correct mouse to build the sentence.'}
+document.addEventListener('keydown',e=>{if($('preview').hidden===false)return;if(e.key.toLowerCase()==='p'){e.preventDefault();if(!e.repeat)togglePause();return}const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};if(map[e.key]){e.preventDefault();move(map[e.key])}});// Swipe on the grid: one cardinal move per gesture, never diagonal.
 let touchStart=null;
 $('grid').addEventListener('touchstart',e=>{
   if(e.touches.length!==1){touchStart=null;return}
@@ -118,17 +134,10 @@ $('grid').addEventListener('touchend',e=>{
   move(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));
 },{passive:true});
 $('grid').addEventListener('touchcancel',()=>{touchStart=null});
-function togglePause(){
- if(busy)return;
- paused=!paused;
- $('pause').textContent=paused?'Resume':'Pause';
- $('status').textContent=paused?'Paused':'Swipe to help the cat catch the correct mouse.';
- if(paused){const el=document.createElement('div');el.className='big';el.textContent='PAUSED';overlay(el)}
- else hideOverlay();
-}
+function togglePause(){lifecycle.toggle()}
 $('pause').addEventListener('click',togglePause);
 $('restart').addEventListener('click',restart);
-function setSound(on){voiceOn=on;$('sound-icon').textContent=voiceOn?'🔊':'🔇';$('sound-label').textContent=voiceOn?'Sound On':'Sound Off';$('sound').setAttribute('aria-pressed',String(voiceOn));if(!voiceOn&&'speechSynthesis'in window)window.speechSynthesis.cancel();}
+function setSound(on){voiceOn=on;$('sound-icon').textContent=voiceOn?'🔊':'🔇';$('sound-label').textContent=voiceOn?'Sound On':'Sound Off';$('sound').setAttribute('aria-pressed',String(voiceOn));if(!voiceOn)lifecycle.cancelSpeech();}
 $('sound').addEventListener('click',()=>{setSound(!voiceOn);shellSession?.sound(voiceOn);});
 
 let selectedLocale = 'es-ES';
@@ -141,9 +150,12 @@ $('play').addEventListener('click', () => {
   $('pause').focus();
 });
 $('menu').addEventListener('click', () => {
+  stopCat();
   if (shellSession) { shellSession.menu(); return; }
-  restart();
   game.hidden = true;
   $('preview').hidden = false;
   $('play').focus();
 });
+
+function stopCat(){epoch++;activeJump?.cancel();lifecycle.stop();touchStart=null;busy=false}
+window.addEventListener('pagehide',stopCat);

@@ -7,6 +7,7 @@ const root = new URL('../dist-preview/', import.meta.url);
 const headers = await readFile(new URL('_headers', root), 'utf8');
 const csp = headers.match(/Content-Security-Policy: (.+)/)[1];
 const paths = new Map([
+  ['/engine/lifecycle.js', ['engine/lifecycle.js', 'text/javascript; charset=utf-8']],
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/engine/cat.js', ['engine/cat.js', 'text/javascript; charset=utf-8']],
   ['/engine/cat.css', ['engine/cat.css', 'text/css; charset=utf-8']],

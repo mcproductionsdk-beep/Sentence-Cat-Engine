@@ -57,6 +57,8 @@ if (window.parent !== window) {
         restart();
         document.getElementById('pause').focus();
         send('STARTED');
+      } else if (sessionId && data.sessionId === sessionId && data.type === 'PAUSE') {
+        lifecycle.pause();
       } else if (sessionId && data.sessionId === sessionId && data.type === 'SPOKEN' && pending?.id === data.id) {
         settle();
       }
