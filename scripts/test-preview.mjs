@@ -91,7 +91,7 @@ try {
       const [from, to] = await page.locator('#grid .tile').evaluateAll((tiles, [word, correct]) => [
         tiles.findIndex(tile => tile.classList.contains('player')),
         tiles.findIndex(tile => tile.classList.contains('reachable') &&
-          (tile.textContent === word) === correct),
+          (tile.querySelector('.word')?.textContent === word) === correct),
       ], [word, correct]);
       const directions = { '-3': ['ArrowUp', 0, -50], '3': ['ArrowDown', 0, 50],
         '-1': ['ArrowLeft', -50, 0], '1': ['ArrowRight', 50, 0] };
